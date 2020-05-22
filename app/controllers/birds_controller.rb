@@ -1,27 +1,24 @@
 class BirdsController < ApplicationController
+    before_action :authenticate, only: [:create, :destroy]
+
     def index
         @birds = Bird.all
         render json: { birds: @birds }
     end
 
     def create
-        auth_header = request.headers["Authorization"]
-        token = auth_header.split(" ")[1]
-        secret_key = Rails.application.secret_key_base
-        payload = JWT.decode(token, secret_key)[0]
-        user_id = payload["user_id"]
-        display_name = payload["display_name"]
-        @user = User.find(user_id)
-
-
-        if !token
-            render status: :unauthorized
-        else
-            @bird = Bird.create({ 
-                color: params[:color],
-                species: params[:species]
-            }) 
-            render json: { bird: @bird }
-        end
+        @bird = Bird.create({ 
+            color: params[:color],
+            species: params[:species]
+        }) 
+        render json: { bird: @bird }
     end
+
+    def destroy
+        @bird = Bird.find(params[:id])
+        @bird.destroy
+        render json: {message: "Bird successfully deleted"}
+    end
+
 end
+ 
